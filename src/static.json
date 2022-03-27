@@ -1,0 +1,36 @@
+{
+  "accounts": [
+    {
+      "id": 1,
+      "name": "John Connor",
+      "address": "0xAA41d0f66Ec690a533D6a66A8388FadD312b48a1"
+    },
+    {
+      "id": 2,
+      "name": "Rocky Balboa",
+      "address": "0x3349629f2EE2e51eA4cFa76840B0B68C6bac66Ce"
+    },
+    {
+      "id": 3,
+      "name": "Jack Dawson",
+      "address": "0x94F75AD3698D5B4fd1309E1f3A231605A4212771"
+    }
+  ],
+  "bookings": [],
+  "sessions": [
+    "Breakfast",
+    "Morning",
+    "Lunch",
+    "Afternoon",
+    "Evening"
+  ],
+  "days": [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+  ]
+}
