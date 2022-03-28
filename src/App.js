@@ -312,7 +312,7 @@ function App() {
           <button
               className="btn-purple"
               onClick={approveTransactionHandler}>
-              Approval Transaction
+              Approve Transaction
             </button>
           </form>
         </div>
