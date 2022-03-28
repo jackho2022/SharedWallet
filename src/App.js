@@ -5,11 +5,6 @@ import abi from "./contracts/SharedWallet.json";
 function App() {
   const accounts = [];
   const [selectedAccount, setSelectedAccount] = useState(accounts[0]);
-/**
-  const transactions = [
-    {id:0, content:"0.0001 ETH to Receiver 123444"},
-    {id:2, content:"0.0005 ETH to Receiver 141423"}
-  ]; **/
   const [transactions, setTransactions] = useState([]);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isWalletConnected, setIsWalletConnected] = useState(false);
@@ -21,13 +16,16 @@ function App() {
   const [userAddress, setUserAddress] = useState(null);
   const [numOfSign, setNumOfSign] = useState(null);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const contractAddress = '0xea80709F6f85898063273E08A88A9c97271128F0';
+  const contractAddress = '0x02A976A60620379E6Ae57b0ebd4b0dCd33A06e5C';
   const contractABI = abi.abi;
   const checkIfWalletIsConnected = async () => {
     try {
       if (window.ethereum) {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+        setIsLoading(true);
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setIsLoading(false);
         const account = accounts[0];
         setIsWalletConnected(true);
         setUserAddress(account);
@@ -37,6 +35,7 @@ function App() {
         console.log("No Metamask detected");
       }      
     } catch (error) {
+      setIsLoading(false);
       console.log(error);
     }
   }
@@ -48,8 +47,9 @@ function App() {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
+        setIsLoading(true);
         let walletName = await contract.walletName();
+        setIsLoading(false);
         // not null to do
         walletName = utils.parseBytes32String(walletName);
         setCurrentWalletName(walletName.toString());
@@ -58,6 +58,7 @@ function App() {
         setError("Please install a MetaMask wallet to use our bank.");
       }
     } catch (error) {
+      setIsLoading(false);
       console.log(error)
     }
   }
@@ -69,7 +70,9 @@ function App() {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
+        setIsLoading(true);
         const txn = await contract.setWalletName(utils.formatBytes32String(inputValue.walletName));
+        setIsLoading(false);
         console.log("Setting Wallet Name...");
         await txn.wait();
         console.log("Wallet Name Changed", txn.hash);
@@ -80,6 +83,7 @@ function App() {
         setError("Please install a MetaMask wallet to use our bank.");
       }
     } catch (error) {
+      setIsLoading(false);
       console.log(error)
     }
   }
@@ -90,8 +94,9 @@ function App() {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
+        setIsLoading(true);
         let owner = await contract.walletOwner();
+        setIsLoading(false);
         setWalletOwnerAddress(owner);
 
         const [account] = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -104,6 +109,7 @@ function App() {
         setError("Please install a MetaMask wallet to use our bank.");
       }
     } catch (error) {
+      setIsLoading(false);
       console.log(error)
     }
   }
@@ -115,13 +121,16 @@ function App() {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
+        setIsLoading(true);
         let numOfApproval = await contract.NUM_OF_APPROVAL_REQUIRED();
+        setIsLoading(false);
         setNumOfSign(utils.formatUnits(numOfApproval,0));
       } else {
         console.log("Ethereum object not found, install Metamask.");
         setError("Please install a MetaMask wallet to use our bank.");
       }
     } catch (error) {
+      setIsLoading(false);
       console.log(error)
     }
   }  
@@ -132,8 +141,9 @@ function App() {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
+        setIsLoading(true);
         let balance = await contract.getWalletBalance();
+        setIsLoading(false);
         setTotalBalance(utils.formatEther(balance));
         console.log("Retrieved balance...", balance);
 
@@ -142,6 +152,7 @@ function App() {
         setError("Please install a MetaMask wallet.");
       }
     } catch (error) {
+      setIsLoading(false);
       console.log(error)
     }
   }
@@ -152,7 +163,7 @@ function App() {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
+        setIsLoading(true);
         const lastTransactionId = await contract.lastTransactionId();
         console.log("LastTransactionId"+lastTransactionId);
         const transactionList = [];
@@ -160,12 +171,14 @@ function App() {
           const element = {};
           const transaction = await contract.transactions(i);
           element.id = transaction[0].toNumber();
-          element.content = "Id=" + transaction[0] + ", Amount=" + transaction[2].toNumber() + ", Approval Count=" + transaction[3].toNumber() + ", Status=" + utils.parseBytes32String(transaction[4]);
+          element.content = "Id=" + transaction[0] + ", Amount=" + transaction[2].toNumber() + " Wei, Approval Count=" + transaction[3].toNumber() + ", Status=" + utils.parseBytes32String(transaction[4]);
           element.status = utils.parseBytes32String(transaction[4]);
           console.log(element);
           transactionList.push(element);
           console.log(transactionList);
         }
+        setIsLoading(false);
+        setSelectedTransaction(0); // default
         setTransactions(transactionList);
 
       } else {
@@ -173,6 +186,8 @@ function App() {
         setError("Please install a MetaMask wallet to use our bank.");
       }
     } catch (error) {
+      setIsLoading(false);
+      setError(error);
       console.log(error)
     }
   }
@@ -196,13 +211,14 @@ function App() {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
+        setIsLoading(true);
         let signerAddress = await signer.getAddress()
         console.log("provider signer...", signerAddress);
 
         const txn = await contract.withdrawMoney(signerAddress, ethers.utils.parseEther(inputValue.withdraw));
         console.log("Withdrawing money...");
         await txn.wait();
+        setIsLoading(false);
         console.log("Money with drew...done", txn.hash);
 
         getTransactionsHandler();
@@ -214,6 +230,7 @@ function App() {
         setError("Please install a MetaMask wallet to use our bank.");
       }
     } catch (error) {
+      setIsLoading(false);
       console.log(error)
     }
   }
@@ -223,20 +240,15 @@ function App() {
       event.preventDefault();
       if (window.ethereum) {
         console.log("approve transaction..."+selectedTransaction);
-        setError(null);
-        const approved = transactions.find(transaction => transaction.id == selectedTransaction);
-        if (approved.status == 'APPROVED') {
-          setError("You cannot approve any approved transaction");
-          return;
-        }
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
+        setIsLoading(true);
         const txn = await contract.approveTransaction(selectedTransaction);
         console.log("Approve money transaction...");
         await txn.wait();
+        setIsLoading(false);
         console.log("Money transaction is apporved...done", txn.hash);
         getTransactionsHandler();
         getWalletBalanceHandler();
@@ -246,6 +258,7 @@ function App() {
         setError("Please install a MetaMask wallet to use our bank.");
       }
     } catch (error) {
+      setIsLoading(false);
       console.log(error)
     }
   }
@@ -263,6 +276,7 @@ function App() {
     <main className="main-container">
       <h2 className="headline"><span className="headline-gradient">Shared Wallet Project</span> 💰</h2>
       <section className="customer-section px-10 pt-5 pb-10">
+        {isLoading && <p className="text-2xl text-yellow-700">Loading</p>}
         {error && <p className="text-2xl text-red-700">{error}</p>}
         <div className="mt-5">
           {currentWalletName === "" && isWalletOwner ?
